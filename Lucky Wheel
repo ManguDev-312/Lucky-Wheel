@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrystalWheel - Decision Maker</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f1129 0%, #13123b 50%, #1b124a 100%);
+            --main-card-bg: #161646;
+            --panel-bg: #111135;
+            --wheel-area-bg: #0b0b28;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #5e6285;
+            --accent-color: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--bg-gradient);
+            padding: 20px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--main-card-bg);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .brand {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            font-weight: 700;
+        }
+
+        .brand span {
+            color: var(--accent-color);
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            padding: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .controls-panel {
+            background: var(--panel-bg);
+            padding: 24px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        select {
+            background: #0f0f2d;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+
+        select:focus {
+            border-color: var(--accent-color);
+        }
+
+        .inputs-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .input-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.15);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .color-badge {
+            width: 18px;
+            height: 18px;
+            border-radius: 5px;
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: var(--wheel-area-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-color);
+        }
+
+        .btn-trigger {
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: var(--accent-color);
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: auto;
+        }
+
+        .btn-trigger:hover:not(:disabled) {
+            background: rgba(56, 189, 248, 0.15);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
+        }
+
+        .btn-trigger:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            border-color: var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .wheel-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: var(--wheel-area-bg);
+            border-radius: 14px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.4);
+            min-height: 400px;
+            padding: 24px;
+        }
+
+        .wheel-wrapper {
+            position: relative;
+            width: 330px;
+            height: 330px;
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-top: 24px solid #f43f5e;
+            filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5));
+            z-index: 10;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transition: transform 5s cubic-bezier(0.1, 0.8, 0.1, 1);
+        }
+
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: #111135;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(0,0,0,0.5);
+            z-index: 5;
+        }
+
+        .result-display {
+            margin-top: 24px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            height: 24px;
+            text-align: center;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+        }
+
+        .result-display.highlight {
+            color: var(--accent-color);
+        }
+
+        .status-bar {
+            background: rgba(0, 0, 0, 0.15);
+            padding: 12px 24px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        /* Custom Scrollbar */
+        .inputs-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        .inputs-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="top-bar">
+            <div class="brand">Crystal<span>Wheel</span></div>
+        </div>
+
+        <div class="main-layout">
+            <div class="controls-panel">
+                <div class="setting-row">
+                    <label for="items-count">Total Options:</label>
+                    <select id="items-count" onchange="buildInputFields()">
+                        <option value="2">2 Options</option>
+                        <option value="3">3 Options</option>
+                        <option value="4" selected>4 Options</option>
+                        <option value="5">5 Options</option>
+                        <option value="6">6 Options</option>
+                        <option value="7">7 Options</option>
+                        <option value="8">8 Options</option>
+                        <option value="9">9 Options</option>
+                        <option value="10">10 Options</option>
+                    </select>
+                </div>
+
+                <div class="inputs-container" id="inputs-container"></div>
+                <button class="btn-trigger" id="spin-button" onclick="spinWheel()">Spin Now</button>
+            </div>
+
+            <div class="wheel-panel">
+                <div class="wheel-wrapper">
+                    <div class="wheel-pointer"></div>
+                    <div class="wheel-center"></div>
+                    <canvas id="wheel-canvas"></canvas>
+                </div>
+                <div class="result-display" id="result-text">Selection pointer ready</div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            Adjust your options on the left pane and spin the wheel to decide.
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('wheel-canvas');
+        const ctx = canvas.getContext('2d');
+        const spinButton = document.getElementById('spin-button');
+        const resultText = document.getElementById('result-text');
+
+        // Professional color palette definitions
+        const gradientPalette = [
+            { start: '#0284c7', end: '#38bdf8' }, 
+            { start: '#b91c1c', end: '#f43f5e' }, 
+            { start: '#047857', end: '#34d399' }, 
+            { start: '#d97706', end: '#fbbf24' }, 
+            { start: '#6d28d9', end: '#a78bfa' }, 
+            { start: '#c2410c', end: '#fb923c' }, 
+            { start: '#0f766e', end: '#2dd4bf' }, 
+            { start: '#be185d', end: '#f472b6' }, 
+            { start: '#1d4ed8', end: '#60a5fa' }, 
+            { start: '#4d7c0f', end: '#a3e635' }  
+        ];
+
+        let currentRotation = 0;
+        let isSpinning = false;
+
+        // Configure canvas layout for high-density screens
+        function setupCanvasResolution() {
+            const size = 400; 
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+            ctx.scale(dpr, dpr);
+        }
+
+        // Dynamically build user input areas
+        function buildInputFields() {
+            if (isSpinning) return;
+            
+            const count = parseInt(document.getElementById('items-count').value);
+            const container = document.getElementById('inputs-container');
+            container.innerHTML = '';
+
+            for (let i = 0; i < count; i++) {
+                const color = gradientPalette[i % gradientPalette.length].end;
+                
+                const div = document.createElement('div');
+                div.className = 'input-item';
+                
+                const badge = document.createElement('div');
+                badge.className = 'color-badge';
+                badge.style.backgroundColor = color;
+                
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'wheel-input';
+                input.placeholder = `Option ${i + 1}`;
+                input.value = `Choice ${i + 1}`; 
+                input.addEventListener('input', drawWheel);
+                
+                div.appendChild(badge);
+                div.appendChild(input);
+                container.appendChild(div);
+            }
+            
+            drawWheel();
+        }
+
+        // Render the customized canvas wheel graphics
+        function drawWheel() {
+            const inputs = document.querySelectorAll('.wheel-input');
+            const numSegments = inputs.length;
+            const arcSize = (2 * Math.PI) / numSegments;
+            const radius = 200; 
+
+            ctx.clearRect(0, 0, 400, 400);
+
+            inputs.forEach((input, i) => {
+                const text = input.value.trim() || `Choice ${i + 1}`;
+                const startAngle = i * arcSize;
+                const endAngle = startAngle + arcSize;
+                const colors = gradientPalette[i % gradientPalette.length];
+
+                const gradient = ctx.createRadialGradient(radius, radius, 10, radius, radius, radius);
+                gradient.addColorStop(0, '#111135');
+                gradient.addColorStop(0.5, colors.start);
+                gradient.addColorStop(1, colors.end);
+
+                ctx.beginPath();
+                ctx.fillStyle = gradient;
+                ctx.moveTo(radius, radius);
+                ctx.arc(radius, radius, radius - 6, startAngle, endAngle);
+                ctx.lineTo(radius, radius);
+                ctx.fill();
+
+                ctx.strokeStyle = 'rgba(11, 11, 40, 0.6)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                ctx.save();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 4;
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                
+                ctx.translate(radius, radius);
+                ctx.rotate(startAngle + arcSize / 2);
+                ctx.fillText(text, radius - 35, 0);
+                ctx.restore();
+            });
+
+            ctx.beginPath();
+            ctx.arc(radius, radius, radius - 5, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        }
+
+        // Trigger wheel rotation and calculate final outcome
+        function spinWheel() {
+            if (isSpinning) return;
+
+            isSpinning = true;
+            spinButton.disabled = true;
+            resultText.classList.remove('highlight');
+            resultText.innerText = "Selecting outcome...";
+
+            const baseSpins = 8; 
+            const randomAngle = Math.random() * (2 * Math.PI);
+            
+            currentRotation += (baseSpins * 2 * Math.PI) + randomAngle;
+            canvas.style.transform = `rotate(${-currentRotation}rad)`;
+
+            setTimeout(() => {
+                isSpinning = false;
+                spinButton.disabled = false;
+                resultText.classList.add('highlight');
+                resultText.innerText = "Check the selected choice!";
+            }, 5000); 
+        }
+
+        setupCanvasResolution();
+        buildInputFields();
+    </script>
+</body>
+</html>
